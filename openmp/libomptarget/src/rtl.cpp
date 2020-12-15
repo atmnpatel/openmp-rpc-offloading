@@ -29,6 +29,7 @@ static const char *RTLNames[] = {
     /* AArch64 target       */ "libomptarget.rtl.aarch64.so",
     /* SX-Aurora VE target  */ "libomptarget.rtl.ve.so",
     /* AMDGPU target        */ "libomptarget.rtl.amdgpu.so",
+    /* Remote target        */ "libomptarget.rtl.rpc.so",
 };
 
 PluginManager *PM;
@@ -147,6 +148,13 @@ void RTLsTy::LoadRTLs() {
         dlsym(dynlib_handle, "__tgt_rtl_data_exchange_async");
     *((void **)&R.is_data_exchangable) =
         dlsym(dynlib_handle, "__tgt_rtl_is_data_exchangable");
+
+    *((void **)&R.register_lib) =
+        dlsym(dynlib_handle, "__tgt_rtl_register_lib");
+    *((void **)&R.unregister_lib) =
+        dlsym(dynlib_handle, "__tgt_rtl_unregister_lib");
+    *((void **)&R.register_requires) =
+        dlsym(dynlib_handle, "__tgt_rtl_register_requires");
 
     // No devices are supported by this RTL?
     if (!(R.NumberOfDevices = R.number_of_devices())) {
@@ -268,9 +276,6 @@ void RTLsTy::RegisterRequires(int64_t flags) {
 }
 
 void RTLsTy::RegisterLib(__tgt_bin_desc *desc) {
-  // Attempt to load all plugins available in the system.
-  std::call_once(initFlag, &RTLsTy::LoadRTLs, this);
-
   PM->RTLsMtx.lock();
   // Register the images with the RTLs that understand them, if any.
   for (int32_t i = 0; i < desc->NumDeviceImages; ++i) {

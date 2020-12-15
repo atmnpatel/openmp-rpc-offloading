@@ -82,6 +82,13 @@ static void HandleTargetOutcome(bool success, ident_t *loc = nullptr) {
 /// adds requires flags
 EXTERN void __tgt_register_requires(int64_t flags) {
   TIMESCOPE();
+  for (auto &RTL : PM->RTLs.UsedRTLs) {
+    if (RTL->register_requires) {
+      if ((*RTL->register_requires)(flags) != OFFLOAD_SUCCESS) {
+        DP("Could not register requires with %s", RTL->RTLName.c_str());
+      }
+    }
+  }
   PM->RTLs.RegisterRequires(flags);
 }
 
@@ -89,6 +96,14 @@ EXTERN void __tgt_register_requires(int64_t flags) {
 /// adds a target shared library to the target execution image
 EXTERN void __tgt_register_lib(__tgt_bin_desc *desc) {
   TIMESCOPE();
+  std::call_once(PM->RTLs.initFlag, &RTLsTy::LoadRTLs, PM->RTLs);
+  for (auto &RTL : PM->RTLs.AllRTLs) {
+    if (RTL.register_lib) {
+      if ((*RTL.register_lib)(desc) != OFFLOAD_SUCCESS) {
+        DP("Could not register library with %s", RTL.RTLName.c_str());
+      }
+    }
+  }
   PM->RTLs.RegisterLib(desc);
 }
 
@@ -97,6 +112,13 @@ EXTERN void __tgt_register_lib(__tgt_bin_desc *desc) {
 EXTERN void __tgt_unregister_lib(__tgt_bin_desc *desc) {
   TIMESCOPE();
   PM->RTLs.UnregisterLib(desc);
+  for (auto &RTL : PM->RTLs.UsedRTLs) {
+    if (RTL->unregister_lib) {
+      if ((*RTL->unregister_lib)(desc) != OFFLOAD_SUCCESS) {
+        DP("Could not register library with %s", RTL->RTLName.c_str());
+      }
+    }
+  }
 }
 
 /// creates host-to-target data mapping, stores it in the
