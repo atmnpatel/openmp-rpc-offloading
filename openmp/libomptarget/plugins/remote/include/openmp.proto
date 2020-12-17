@@ -1,0 +1,229 @@
+syntax = "proto3";
+
+package remoteoffloading;
+
+option cc_enable_arenas = true;
+
+service RemoteOffload {
+  rpc Shutdown(Null) returns (Null) {}
+
+  rpc RegisterLib(TargetBinaryDescription) returns (Null) {}
+  rpc UnregisterLib(Null) returns (Null) {}
+  rpc RegisterRequires(LongScalar) returns (Null) {}
+
+  // check this
+  rpc IsValidBinary(TargetDeviceImagePtr) returns (Scalar) {}
+  rpc GetNumberOfDevices(Null) returns (Scalar) {}
+
+  rpc InitDevice(Scalar) returns (Scalar) {}
+  rpc InitRequires(LongScalar) returns (Scalar) {}
+
+  rpc LoadBinary(Binary) returns (TargetTable) {}
+  rpc Synchronize(SynchronizeDevice) returns (Scalar) {}
+
+  rpc DataAlloc(AllocData) returns (Pointer) {}
+
+  rpc DataSubmit(stream SubmitData) returns (Scalar) {}
+  rpc DataSubmitAsync(stream SubmitDataAsync) returns (Scalar) {}
+
+  rpc DataRetrieve(RetrieveData) returns (stream Data) {}
+  rpc DataRetrieveAsync(RetrieveDataAsync) returns (stream Data) {}
+
+  rpc DataExchange(ExchangeData) returns (Scalar) {}
+  rpc DataExchangeAsync(ExchangeDataAsync) returns (Scalar) {}
+
+  rpc DataDelete(DeleteData) returns (Scalar) {}
+
+  rpc RunTargetRegion(TargetRegion) returns (Scalar) {}
+  rpc RunTargetRegionAsync(TargetRegionAsync) returns (Scalar) {}
+
+  rpc RunTargetTeamRegion(TargetTeamRegion) returns (Scalar) {}
+  rpc RunTargetTeamRegionAsync(TargetTeamRegionAsync) returns (Scalar) {}
+
+  rpc IsDataExchangeable(DevicePair) returns (Scalar) {}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+message Null {}
+
+message Pointer { uint64 number = 1; }
+
+message Scalar { int32 number = 1; }
+
+message LongScalar {int64 number = 1; }
+
+message DevicePair {
+  int32 src_dev_id = 1;
+  int32 dst_dev_id = 2;
+}
+
+message Binary {
+  int32 device_id = 1;
+  uint64 image_ptr = 2;
+}
+
+message TargetOffloadEntry {
+  int32 flags = 1;
+  int32 reserved = 2;
+  string name = 3;
+  bytes data = 4;
+}
+
+message DeviceOffloadEntry {
+  uint64 addr = 1;
+  string name = 2;
+  int32 flags = 3;
+  int32 reserved = 4;
+  int32 size = 5;
+}
+
+message TargetTable {
+  repeated DeviceOffloadEntry entries = 1;
+  repeated uint64 entry_ptrs = 2;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+message TargetDeviceImagePtr {
+  uint64 image_ptr = 1;
+  repeated uint64 entry_ptrs = 2;
+}
+
+message TargetDeviceImage {
+  repeated TargetOffloadEntry entries = 1;
+  bytes binary = 2;
+}
+
+message ImagePtrs {
+  uint64 img_ptr = 1;
+  repeated uint64 entry_ptrs = 2;
+}
+
+message TargetBinaryDescription {
+  repeated uint64 entry_ptrs = 1;
+  repeated ImagePtrs image_ptrs = 2;
+  repeated TargetOffloadEntry entries = 3;
+  repeated TargetDeviceImage images = 4;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+message SynchronizeDevice {
+  uint64 queue_ptr = 1;
+  int32 device_id = 2;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+message AllocData {
+  int32 device_id = 1;
+  int64 size = 2;
+  uint64 hst_ptr = 3;
+}
+
+message SubmitData {
+  uint64 hst_ptr = 1;
+  uint64 tgt_ptr = 2;
+  int32 device_id = 3;
+  bytes data = 4;
+  uint64 start = 5;
+  int64 size = 6;
+}
+
+message SubmitDataAsync {
+  uint64 hst_ptr = 1;
+  uint64 tgt_ptr = 2;
+  uint64 queue_ptr = 3;
+  int32 device_id = 4;
+  bytes data = 5;
+  uint64 start = 6;
+  int64 size = 7;
+}
+
+message RetrieveData {
+  uint64 hst_ptr = 1;
+  uint64 tgt_ptr = 2;
+  int64 size = 3;
+  int32 device_id = 4;
+}
+
+message RetrieveDataAsync {
+  uint64 hst_ptr = 1;
+  uint64 tgt_ptr = 2;
+  int64 size = 3;
+  uint64 queue_ptr = 4;
+  int32 device_id = 5;
+}
+
+message Data {
+  int32 ret = 1;
+  bytes data = 2;
+  uint64 start = 3;
+  int64 size = 4;
+}
+
+message ExchangeData {
+ uint64 src_dev_id = 1;
+ uint64 src_ptr = 2;
+ uint64 dst_dev_id = 3;
+ uint64 dst_ptr = 4;
+ int64 size = 5;
+}
+
+message ExchangeDataAsync {
+  uint64 src_dev_id = 1;
+  uint64 src_ptr = 2;
+  uint64 dst_dev_id = 3;
+  uint64 dst_ptr = 4;
+  uint64 queue_ptr = 5;
+  int64 size = 6;
+}
+
+message DeleteData {
+  uint64 tgt_ptr = 1;
+  int32 device_id = 2;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+message TargetRegion {
+  int32 device_id = 1;
+  int32 arg_num = 2;
+  uint64 tgt_entry_ptr = 3;
+  repeated uint64 tgt_args = 4;
+  repeated int64 tgt_offsets = 5;
+}
+
+message TargetRegionAsync {
+  int32 device_id = 1;
+  int32 arg_num = 2;
+  uint64 tgt_entry_ptr = 3;
+  uint64 queue_ptr = 4;
+  repeated uint64 tgt_args = 5;
+  repeated int64 tgt_offsets = 6;
+}
+
+message TargetTeamRegion {
+  int32 device_id = 1;
+  int32 arg_num = 2;
+  int32 team_num = 3;
+  int32 thread_limit = 4;
+  uint64 loop_tripcount = 5;
+  uint64 tgt_entry_ptr = 6;
+  repeated uint64 tgt_args = 7;
+  repeated int64 tgt_offsets = 8;
+}
+
+message TargetTeamRegionAsync {
+  int32 device_id = 1;
+  int32 arg_num = 2;
+  int32 team_num = 3;
+  int32 thread_limit = 4;
+  uint64 tgt_entry_ptr = 5;
+  uint64 loop_tripcount = 6;
+  uint64 queue_ptr = 7;
+  repeated uint64 tgt_args = 8;
+  repeated int64 tgt_offsets = 9;
+}
+
