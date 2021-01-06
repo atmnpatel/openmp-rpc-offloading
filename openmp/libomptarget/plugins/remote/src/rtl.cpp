@@ -44,7 +44,7 @@ __attribute__((constructor(101))) void initRPC() {
     ServerAddresses.push_back(AddressString);
   }
 
-  int Timeout = 100000;
+  int Timeout = 5;
   if (const char *Env1 = std::getenv("GRPC_LATENCY")) {
     if (const char *Env2 = std::getenv("GRPC_LATENCY_MULTIPLIER"))
       Timeout += std::stoi(Env1) * std::stoi(Env2);

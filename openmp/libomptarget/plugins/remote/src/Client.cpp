@@ -56,7 +56,7 @@ using grpc::Status;
 template <typename Pre, typename Post>
 void RemoteOffloadClient::call(Pre Preprocess, Post Postprocess, bool Retry,
                                bool Deadline) {
-  if (Arena->SpaceUsed() >= MaxSize)
+  if (Arena->SpaceAllocated() >= MaxSize)
     Arena->Reset();
 
   int Attempts = Shots;
@@ -64,7 +64,7 @@ void RemoteOffloadClient::call(Pre Preprocess, Post Postprocess, bool Retry,
     ClientContext Context;
     if (Deadline) {
       auto Deadline =
-          std::chrono::system_clock::now() + std::chrono::milliseconds(Timeout);
+          std::chrono::system_clock::now() + std::chrono::seconds(Timeout);
       Context.set_deadline(Deadline);
     }
 
@@ -89,7 +89,7 @@ void RemoteOffloadClient::call(Pre Preprocess, Post Postprocess, bool Retry,
 template <typename Pre, typename Post, typename ReturnType>
 auto RemoteOffloadClient::call(Pre Preprocess, Post Postprocess,
                                ReturnType Default, bool Retry, bool Deadline) {
-  if (Arena->SpaceUsed() >= MaxSize)
+  if (Arena->SpaceAllocated() >= MaxSize)
     Arena->Reset();
 
   int Attempts = Shots;
@@ -97,7 +97,7 @@ auto RemoteOffloadClient::call(Pre Preprocess, Post Postprocess,
     ClientContext Context;
     if (Deadline) {
       auto Deadline =
-          std::chrono::system_clock::now() + std::chrono::milliseconds(Timeout);
+          std::chrono::system_clock::now() + std::chrono::seconds(Timeout);
       Context.set_deadline(Deadline);
     }
 

@@ -1,3 +1,41 @@
+# OpenMP Remote Offloading
+
+
+## Build
+
+Requirements:
+- gRPC
+- Protobuf
+- clang/gcc to compile a clang that can compile to the desired target
+
+If you have the latest CMake, I highly recommend using the "offloading" Preset, I've moved under the Project preset (./llvm/CMakePresets.json) so you can easily modify as needed. Otherwise, you can just use the preset as a baseline.
+
+After you build, these are the relevant files that should've been compiled:
+- ./bin/offloading-server
+- ./lib/libomptarget.so || ./lib/libomptarget.so.12git
+- ./lib/libomptarget.rtl.rpc.so
+- Other device plugins depending on your system config/requirements
+
+## Manual Configurations
+
+Due to the nature of libomptarget and its device plugins, it often happens that the offloading server recognizes "too many devices" and then the offloaded application fails at runtime because the host libomptarget tries to execute a binary on an invalid device (i.e. CUDA binary on an X86). The solution at this point is to carefully pass library paths and remove unnecessary plugins from them so they don't accidentally get loaded. Pre-emptively, to make this easier, I've just commented out the plugin lines for x86 in openmp/libomptarget/src/rtl.cpp, so it won't get generated, and the remote offloading-server (presumably) won't see the remote host CPU as a device. You should be able to repeat a similar trick for ARM/etc. Additionally, be sure that you don't pass libomptarget.rtl.rpc.so to offloading-server otherwise it will also try to offload, and things break down.
+
+The default address that the client/server listen are on is 0.0.0.0:50051. This is configurable via the environment var GRPC\_ADDRESS. If the application is to be offloaded onto multiple remotes, the var takes in multiple addresses as csvs. but the server application cannot take multiple addresses (it is not yet possible to have the same remote be offloaded onto from multiple hosts possibly simultanously from the same offloading-server, but it should be possible with multiple offloading-servers running at the same time on different addresses).
+
+Additional env variables are:
+- GRPC\_LATENCY (sets a timeout for some calls where a fixed timeout is reasonable such as initialization), default 5s, if you want to change the base from seconds, its at libomptarget/plugins/remote/src/Client.cpp:{67, 100}
+- GRPC\_TRY (sets the number of tries before failing), default 2
+- GRPC\_ALLOCATOR\_MAX (on the client side, we use an allocator for the messages, this sets the max allocated before it resets)
+- GRPC\_BLOCK\_SIZE (sets the block size for large data transfer, it will send messages of at most this size)
+
+## Testing
+I've included two mini-apps under benchmarks with makefiles already mostly setup (other than the necessary system-specific configs) for remote offloading. You can find more documentation for them on their respective githubs for RSBench/XSBench. Both of these should work out of the box.
+
+## Future
+
+Most of the code written for the plugin wasn't analyzed beyond (does it work, does it have any obvious performance flaws), so the design/layout is less than ideal (so there may be spurious failures), but it is just a prototype. I'm dealing with these during my partial re-write where I try to use manual serialization and ucx instead of gRPC/protobuf. For HPC, I do believe that this is best case scenario but I'm open to suggestions.
+
+
 # The LLVM Compiler Infrastructure
 
 This directory and its sub-directories contain source code for LLVM,

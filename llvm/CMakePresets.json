@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 19,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "offloading",
+      "displayName": "OpenMP Offloading",
+      "description": "Build for OpenMP Offloading",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/../build/offloading",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc-9",
+        "CMAKE_CXX_COMPILER": "g++-9",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "LLVM_ENABLE_PROJECTS": "clang;openmp;compiler-rt",
+        "LLVM_ENABLE_LLD": "ON",
+        "LLVM_CCACHE_BUILD": "ON",
+        "LLVM_TARGETS_TO_BUILD": "X86;NVPTX",
+        "LLVM_ENABLE_ASSERTIONS": "ON",
+        "CLANG_OPENMP_NVPTX_DEFAULT_ARCH": "sm_75",
+        "LIBOMP_CPPFLAGS": "-Wno-error=date-time",
+        "LIBOMP_USE_ADAPTIVE_LOCKS": "ON",
+        "LIBOMP_USE_DEBUGGER": "ON",
+        "LIBOMPTARGET_DEBUG": "ON",
+        "LIBOMPTARGET_ENABLE_DEBUG": "ON",
+        "LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES": "75",
+        "LIBOMPTARGET_NVPTX_DEBUG": "ON",
+        "CUDA_TOOLKIT_ROOT_DIR": "/usr/local/cuda",
+        "OPENMP_ENABLE_LIBOMPTARGET_PROFILING": "ON"
+      }
+    }
+  ]
+}

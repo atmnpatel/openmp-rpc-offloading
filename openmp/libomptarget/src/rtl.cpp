@@ -23,13 +23,13 @@
 
 // List of all plugins that can support offloading.
 static const char *RTLNames[] = {
+    /* Remote target        */ "libomptarget.rtl.rpc.so",
     /* PowerPC target       */ "libomptarget.rtl.ppc64.so",
-    /* x86_64 target        */ "libomptarget.rtl.x86_64.so",
+    /* x86_64 target        "libomptarget.rtl.x86_64.so", */
     /* CUDA target          */ "libomptarget.rtl.cuda.so",
     /* AArch64 target       */ "libomptarget.rtl.aarch64.so",
     /* SX-Aurora VE target  */ "libomptarget.rtl.ve.so",
     /* AMDGPU target        */ "libomptarget.rtl.amdgpu.so",
-    /* Remote target        */ "libomptarget.rtl.rpc.so",
 };
 
 PluginManager *PM;
