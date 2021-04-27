@@ -10,8 +10,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <bits/stdint-intn.h>
-#include <bits/stdint-uintn.h>
 #include <cstdlib>
 #include <string>
 

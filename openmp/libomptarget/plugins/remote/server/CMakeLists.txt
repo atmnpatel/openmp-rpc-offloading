@@ -30,4 +30,4 @@ add_executable(offloading-server
 target_link_libraries(offloading-server
         grpc++
         protobuf
-        "-ldl" "-lomp" "-fopenmp" "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../../exports" ${LIBOMPTARGET_DEP_LIBELF_LIBRARIES})
+        "-ldl" "-fopenmp" "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../../exports" ${LIBOMPTARGET_DEP_LIBELF_LIBRARIES})
